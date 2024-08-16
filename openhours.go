@@ -29,6 +29,11 @@ var (
 // OpenHours ...
 type OpenHours []time.Time
 
+// NewDate returns a new time.Time with the given day, hour, min, sec, nsec and loc
+func NewDate(day, hour, min, sec, nsec int, loc *time.Location) time.Time {
+	return newDate(day, hour, min, sec, nsec, loc)
+}
+
 func newDate(day, hour, min, sec, nsec int, loc *time.Location) time.Time {
 	return time.Date(2018, 1, day, hour, min, sec, nsec, loc)
 }
