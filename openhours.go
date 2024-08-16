@@ -146,7 +146,6 @@ func cleanStr(str string) string {
 	clean = strings.Join(strings.Fields(clean), " ")
 	clean = strings.ToLower(clean)
 	clean = strings.Replace(clean, " ,", ",", -1)
-	//clean = strings.Replace(clean, ", ", ",", -1)
 	return clean
 }
 
