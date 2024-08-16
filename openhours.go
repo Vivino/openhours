@@ -146,7 +146,7 @@ func cleanStr(str string) string {
 	clean = strings.Join(strings.Fields(clean), " ")
 	clean = strings.ToLower(clean)
 	clean = strings.Replace(clean, " ,", ",", -1)
-	clean = strings.Replace(clean, ", ", ",", -1)
+	//clean = strings.Replace(clean, ", ", ",", -1)
 	return clean
 }
 
@@ -224,24 +224,26 @@ func new(str string, loc *time.Location) (OpenHours, error) {
 		str = "su-sa 00:00-24:00"
 	}
 	for _, str := range strings.Split(cleanStr(str), ";") {
-		strs := strings.Fields(str)
-		if len(strs) < 2 {
-			return nil, ErrInvalidFormat
-		}
-		days := simplifyDays(strs[0])
-		for _, str := range strings.Split(strs[1], ",") {
-			times := strings.Split(str, "-")
-			if len(times) != 2 {
+		for _, str := range strings.Split(cleanStr(str), ", ") {
+			strs := strings.Fields(str)
+			if len(strs) < 2 {
 				return nil, ErrInvalidFormat
 			}
-			hourFrom, minFrom, secFrom := simplifyTime(times[0])
-			hourTo, minTo, secTo := simplifyTime(times[1])
-			for _, day := range days {
-				fromDate := newDate(day, hourFrom, minFrom, secFrom, 0, loc)
-				if hourFrom > hourTo { // closing after midnight
-					day++
+			days := simplifyDays(strs[0])
+			for _, str := range strings.Split(strs[1], ",") {
+				times := strings.Split(str, "-")
+				if len(times) != 2 {
+					return nil, ErrInvalidFormat
 				}
-				o = append(o, fromDate, newDate(day, hourTo, minTo, secTo, 0, loc))
+				hourFrom, minFrom, secFrom := simplifyTime(times[0])
+				hourTo, minTo, secTo := simplifyTime(times[1])
+				for _, day := range days {
+					fromDate := newDate(day, hourFrom, minFrom, secFrom, 0, loc)
+					if hourFrom > hourTo { // closing after midnight
+						day++
+					}
+					o = append(o, fromDate, newDate(day, hourTo, minTo, secTo, 0, loc))
+				}
 			}
 		}
 	}

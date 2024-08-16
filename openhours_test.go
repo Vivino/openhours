@@ -24,10 +24,9 @@ func Test_cleanStr(t *testing.T) {
 		args string
 		want string
 	}{
-		{"capital letters", "Mo-Fr 10:00-12:00,12:30-16:00", "mo-fr 10:00-12:00,12:30-16:00"},
-		{"comma after space", "Mo-Fr 10:00-12:00, 12:30-16:00", "mo-fr 10:00-12:00,12:30-16:00"},
+		{"capital letters", "Mo-Fr 10:00-12:00, 12:30-16:00", "mo-fr 10:00-12:00, 12:30-16:00"},
 		{"comma before space", "Mo-Fr 10:00-12:00 ,12:30-16:00", "mo-fr 10:00-12:00,12:30-16:00"},
-		{"comma before and after space", "Mo-Fr 10:00-12:00 , 12:30-16:00", "mo-fr 10:00-12:00,12:30-16:00"},
+		{"comma before and after space", "Mo-Fr 10:00-12:00 , 12:30-16:00", "mo-fr 10:00-12:00, 12:30-16:00"},
 		{"front space", " Mo-Fr 10:00-12:00,12:30-16:00", "mo-fr 10:00-12:00,12:30-16:00"},
 		{"trailing space", "Mo-Fr 10:00-12:00,12:30-16:00 ", "mo-fr 10:00-12:00,12:30-16:00"},
 		{"both spaces", " Mo-Fr 10:00-12:00,12:30-16:00 ", "mo-fr 10:00-12:00,12:30-16:00"},
@@ -428,6 +427,35 @@ func TestOpenHours_ClosingAfterMidnight(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, got1 := tt.o.NextDur(tt.now); got != tt.want {
 				t.Errorf("OpenHours.NextDur().Open = %v, want %v, duration: %v", got, tt.want, got1)
+			}
+		})
+	}
+}
+
+func TestOpenHours_CommaSeparation(t *testing.T) {
+	o := NewMust("mo 10:00-12:00, tu-we 13:00-15:00", l)
+	tests := []struct {
+		o    OpenHours
+		name string
+		now  time.Time
+		want bool
+	}{
+		{o, "Monday before", newDate(Monday, 9, 0, 0, 0, l), false},
+		{o, "Monday start", newDate(Monday, 10, 0, 0, 0, l), true},
+		{o, "Monday between", newDate(Monday, 11, 0, 0, 0, l), true},
+		{o, "Monday end", newDate(Monday, 12, 0, 0, 0, l), false},
+		{o, "Monday after", newDate(Monday, 13, 0, 0, 0, l), false},
+		{o, "Tuesday before", newDate(Tuesday, 10, 0, 0, 0, l), false},
+		{o, "Tuesday start", newDate(Tuesday, 13, 0, 0, 0, l), true},
+		{o, "Tuesday between", newDate(Tuesday, 14, 0, 0, 0, l), true},
+		{o, "Tuesday end", newDate(Tuesday, 15, 0, 0, 0, l), false},
+		{o, "Tuesday after", newDate(Tuesday, 16, 0, 0, 0, l), false},
+		{o, "Wednesday start", newDate(Wednesday, 13, 0, 0, 0, l), true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.o.Match(tt.now); got != tt.want {
+				t.Errorf("OpenHours.Match() = %v, want %v", got, tt.want)
 			}
 		})
 	}
